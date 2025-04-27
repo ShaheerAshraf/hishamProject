@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Spoilage Predictor</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom styles for Food Spoilage Predictor */
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif;
+        }
+        
+        .safety-indicator {
+            min-height: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .safe {
+            background-color: var(--bs-success);
+            color: var(--bs-white);
+        }
+        
+        .unsafe {
+            background-color: var(--bs-danger);
+            color: var(--bs-white);
+        }
+        
+        .form-text {
+            color: var(--bs-secondary-color);
+        }
+        
+        .ph-result-container {
+            display: block;
+        }
+        
+        .ph-result-hidden {
+            display: none;
+        }
+        
+        /* Add some subtle animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .pop-in {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: center;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes popIn {
+            0% { 
+                opacity: 0;
+                transform: scale(0.7);
+            }
+            70% {
+                transform: scale(1.05);
+            }
+            100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 767.98px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center text-white">
+                <i class="fas fa-apple-alt fa-2x me-3"></i>
+                <h1 class="fs-4">Food Spoilage Predictor</h1>
+            </div>
+            <p class="text-muted mt-2">Group 4 Project by 11 - IB</p>
+        </header>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="p-4 mb-4 bg-dark rounded-3 border border-secondary">
+                    <h2 class="fs-4 mb-3">Predict Food Spoilage</h2>
+                    <form id="spoilage-form">
+                        <div class="mb-3">
+                            <label for="food-type" class="form-label">Food Type</label>
+                            <select class="form-select" id="food-type" required>
+                                <option value="" selected disabled>Select a food type</option>
+                                <option value="Chicken">Chicken</option>
+                                <option value="Banana">Banana</option>
+                                <option value="Apple">Apple</option>
+                                <option value="Strawberry">Strawberry</option>
+                                <option value="Khubs (Flatbread)">Khubs (Flatbread)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="storage-condition" class="form-label">Storage Condition</label>
+                            <select class="form-select" id="storage-condition" required>
+                                <option value="" selected disabled>Select a storage condition</option>
+                                <option value="Control (Room Temp, Humid)">Control (Room Temp, Humid)</option>
+                                <option value="Test 1 (T1)">Test 1 (T1)</option>
+                                <option value="Test 2 (Refrigerated)">Test 2 (Refrigerated)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="storage-description-container" style="display: none;">
+                            <label for="storage-description" class="form-label">Storage Description</label>
+                            <div id="storage-description" class="p-2 rounded border border-secondary bg-dark text-white">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="day-number" class="form-label">Day Number (0-10)</label>
+                            <input type="number" class="form-control" id="day-number" min="0" max="10" value="0" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Predict Spoilage</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="p-4 mb-4 bg-dark rounded-3 border border-secondary">
+                    <h2 class="fs-4 mb-3">Prediction Results</h2>
+                    <div id="results" class="d-none">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 class="fs-5">Safety Status</h3>
+                                <span id="safety-badge" class="badge rounded-pill"></span>
+                            </div>
+                            <div class="safety-indicator mb-3 p-2 rounded"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h3 class="fs-5 mb-2">Visual Appearance</h3>
+                            <p id="visual-result" class="p-2 rounded border border-secondary bg-dark text-white"></p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h3 class="fs-5 mb-2">Smell</h3>
+                            <p id="smell-result" class="p-2 rounded border border-secondary bg-dark text-white"></p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h3 class="fs-5 mb-2">Texture</h3>
+                            <p id="texture-result" class="p-2 rounded border border-secondary bg-dark text-white"></p>
+                        </div>
+                        
+                        <div class="mb-3 ph-result-container">
+                            <h3 class="fs-5 mb-2">pH Value</h3>
+                            <p id="ph-result" class="p-2 rounded border border-secondary bg-dark text-white"></p>
+                        </div>
+                    </div>
+                    
+                    <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
+                    
+                    <div id="no-results" class="text-center p-4">
+                        <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                        <p class="text-muted">Submit the form to see spoilage prediction results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="pt-3 mt-4 text-muted border-top">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>Food Spoilage Predictor</div>
+                <div>Group 4 Project by 11 - IB</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS Bundle and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Food Data and Application Logic -->
+    <script>
+        // Food Data - Contains all the spoilage prediction logic
+        const FoodData = {
+            // Storage descriptions based on food type and storage condition
+            getStorageDescription: function(foodType, storageCondition) {
+                const descriptions = {
+                    "Control (Room Temp, Humid)": {
+                        "Chicken": "Raw chicken stored at room temperature in humid conditions",
+                        "Banana": "Banana stored at room temperature in humid conditions",
+                        "Apple": "Apple stored at room temperature in humid conditions",
+                        "Strawberry": "Strawberry stored at room temperature in humid conditions",
+                        "Khubs (Flatbread)": "Flatbread stored at room temperature in humid conditions"
+                    },
+                    "Test 1 (T1)": {
+                        "Chicken": "Grilled chicken stored at room temperature",
+                        "Banana": "Green banana stored next to an apple (exposed to ethylene)",
+                        "Apple": "Apple stored next to a green banana",
+                        "Strawberry": "Salted strawberry stored at room temperature",
+                        "Khubs (Flatbread)": "Salted flatbread stored at room temperature"
+                    },
+                    "Test 2 (Refrigerated)": {
+                        "Chicken": "Raw chicken stored in refrigerator",
+                        "Banana": "Banana stored in refrigerator",
+                        "Apple": "Apple stored in refrigerator",
+                        "Strawberry": "Strawberry stored in refrigerator",
+                        "Khubs (Flatbread)": "Flatbread stored in refrigerator"
+                    }
+                };
+                
+                return descriptions[storageCondition]?.[foodType] || "Standard storage conditions";
+            },
+            
+            // pH values data from experiments
+            getPhValue: function(foodType, storageCondition, dayNumber) {
+                // Control pH values (from Table 1)
+                const controlPh = {
+                    "Strawberry": {1: 3.6, 2: 3.6, 4: 3.4, 7: 3.2, 8: 3.2, 10: 3.1},
+                    "Banana": {2: 4.9, 4: 4.7, 8: 4.4, 9: 4.3, 10: 4.3},
+                    "Apple": {2: 3.5, 4: 3.4, 7: 3.2, 8: 3.1, 10: 3.0},
+                    "Chicken": {1: 6.0, 2: 6.1, 4: 6.3, 7: 6.9, 9: 7.1, 10: 7.2},
+                    "Khubs (Flatbread)": {1: 5.5, 2: 5.4, 4: 5.2, 7: 4.9, 10: 4.7}
+                };
+                
+                // Test 1 pH values (from Table 3)
+                const t1Ph = {
+                    "Strawberry": {1: 3.6, 2: 3.6, 4: 3.5, 7: 3.4, 9: 3.4, 10: 3.3},
+                    "Banana": {1: 5.8, 2: 5.7, 7: 5.0, 8: 4.8, 10: 4.6},
+                    "Apple": {1: 3.5, 2: 3.4, 7: 3.1, 8: 3.0, 10: 2.9},
+                    "Chicken": {2: 6.2, 4: 6.3, 7: 6.6, 9: 6.7},
+                    "Khubs (Flatbread)": {1: 5.5, 2: 5.4, 4: 5.3, 7: 5.0, 9: 4.9}
+                };
+                
+                // Test 2 pH values (from Table 5 / last table)
+                const t2Ph = {
+                    "Strawberry": {1: 3.6, 2: 3.6, 3: 3.6, 4: 3.5, 5: 3.5, 6: 3.5, 7: 3.4, 8: 3.4, 9: 3.4, 10: 3.4},
+                    "Banana": {1: 5.0, 2: 5.0, 3: 4.9, 4: 4.9, 5: 4.9, 6: 4.8, 7: 4.8, 8: 4.8, 9: 4.7, 10: 4.7},
+                    "Apple": {1: 3.5, 2: 3.5, 3: 3.5, 4: 3.4, 5: 3.4, 6: 3.4, 7: 3.4, 8: 3.3, 9: 3.3, 10: 3.3},
+                    "Chicken": {1: 6.0, 2: 6.1, 3: 6.1, 4: 6.2, 5: 6.2, 6: 6.3, 7: 6.3, 8: 6.4, 9: 6.4, 10: 6.5},
+                    "Khubs (Flatbread)": {1: 5.5, 2: 5.5, 3: 5.4, 4: 5.4, 5: 5.3, 6: 5.3, 7: 5.2, 8: 5.2, 9: 5.1, 10: 5.1}
+                };
+                
+                // Select the appropriate pH data based on storage condition
+                let phData;
+                if (storageCondition === "Control (Room Temp, Humid)") {
+                    phData = controlPh;
+                } else if (storageCondition === "Test 1 (T1)") {
+                    phData = t1Ph;
+                } else if (storageCondition === "Test 2 (Refrigerated)") {
+                    phData = t2Ph;
+                } else {
+                    return null;
+                }
+                
+                // Get food-specific pH data
+                const foodPhData = phData[foodType];
+                if (!foodPhData) return null;
+                
+                // Return exact pH if available
+                if (dayNumber in foodPhData) {
+                    return foodPhData[dayNumber];
+                }
+                
+                // If not available, interpolate or extrapolate based on available data
+                const availableDays = Object.keys(foodPhData).map(Number).sort((a, b) => a - b);
+                
+                // If day_number is less than the smallest available day
+                if (dayNumber < availableDays[0]) {
+                    return foodPhData[availableDays[0]];
+                }
+                
+                // If day_number is greater than the largest available day
+                if (dayNumber > availableDays[availableDays.length - 1]) {
+                    return foodPhData[availableDays[availableDays.length - 1]];
+                }
+                
+                // Find nearest available days for interpolation
+                const lowerDay = Math.max(...availableDays.filter(d => d <= dayNumber));
+                const upperDay = Math.min(...availableDays.filter(d => d >= dayNumber));
+                
+                // If exact day is available (this is a redundant check but kept for clarity)
+                if (lowerDay === upperDay) {
+                    return foodPhData[lowerDay];
+                }
+                
+                // Linear interpolation
+                const lowerPh = foodPhData[lowerDay];
+                const upperPh = foodPhData[upperDay];
+                
+                const interpolatedPh = lowerPh + (upperPh - lowerPh) * (dayNumber - lowerDay) / (upperDay - lowerDay);
+                return Math.round(interpolatedPh * 10) / 10; // Round to 1 decimal place
+            },
+            
+            // Predict food spoilage based on food type, storage condition, and day number
+            predictSpoilage: function(foodType, storageCondition, dayNumber) {
+                // Initialize default response
+                const prediction = {
+                    "visual": "No visible changes",
+                    "smell": "Normal smell",
+                    "texture": "Normal texture",
+                    "ph": this.getPhValue(foodType, storageCondition, dayNumber),
+                    "safe_to_eat": true,
+                    "storage_description": this.getStorageDescription(foodType, storageCondition)
+                };
+                
+                // CHICKEN RULES
+                if (foodType === "Chicken") {
+                    if (storageCondition === "Control (Room Temp, Humid)") {
+                        if (dayNumber >= 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "No odor";
+                            prediction.texture = "Fresh texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Slightly slimy appearance";
+                            prediction.smell = "Very faint odor";
+                            prediction.texture = "Slightly slimy";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Slimy appearance";
+                            prediction.smell = "Unpleasant odor";
+                            prediction.texture = "Slimy texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Slimy; dark brown color";
+                            prediction.smell = "Foul odor";
+                            prediction.texture = "Very slimy";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 9) {
+                            prediction.visual = "Very slimy; discolored";
+                            prediction.smell = "Very rotten smell";
+                            prediction.texture = "Very slimy texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Putrid appearance";
+                            prediction.smell = "Foul odor; putrid";
+                            prediction.texture = "Decomposing";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 1 (T1)") {
+                        // Grilled chicken
+                        if (dayNumber === 1) {
+                            prediction.visual = "Freshly cooked appearance";
+                            prediction.smell = "Freshly cooked; no odor";
+                            prediction.texture = "Dry";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Dry appearance";
+                            prediction.smell = "No odor";
+                            prediction.texture = "Slightly dry";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Dry appearance";
+                            prediction.smell = "Slight sour smell";
+                            prediction.texture = "Dry texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Signs of spoilage";
+                            prediction.smell = "Foul odor";
+                            prediction.texture = "Slimy texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 9) {
+                            prediction.visual = "Slimy appearance";
+                            prediction.smell = "Strong rotten smell";
+                            prediction.texture = "Slimy texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Spoiled appearance";
+                            prediction.smell = "Putrid smell";
+                            prediction.texture = "Slimy texture";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 2 (Refrigerated)") {
+                        // Based on Table 5. Biological changes (T2 - Refrigerated)
+                        if (dayNumber === 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "No odor";
+                            prediction.texture = "Fresh texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "No odor";
+                            prediction.texture = "Fresh texture";
+                            prediction.safe_to_eat = false; // Raw chicken isn't safe after 1 day, even refrigerated
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Slight sourness beginning";
+                            prediction.texture = "Fresh texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Beginning to change";
+                            prediction.smell = "Mild sour smell";
+                            prediction.texture = "Slightly softer";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "Signs of early spoilage";
+                            prediction.smell = "Mild sour smell";
+                            prediction.texture = "Softer texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 9) {
+                            prediction.visual = "Signs of spoilage";
+                            prediction.smell = "Mild spoilage odor";
+                            prediction.texture = "Softer texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Signs of deterioration";
+                            prediction.smell = "Noticeable sour smell";
+                            prediction.texture = "Softer texture";
+                            prediction.safe_to_eat = false;
+                        }
+                    }
+                }
+                
+                // BANANA RULES
+                else if (foodType === "Banana") {
+                    if (storageCondition === "Control (Room Temp, Humid)") {
+                        if (dayNumber === 1) {
+                            prediction.visual = "Yellowing";
+                            prediction.smell = "Sweet smell";
+                            prediction.texture = "Firm";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Fully yellow, firm";
+                            prediction.smell = "Banana aroma";
+                            prediction.texture = "Firm";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Yellow, looks the same";
+                            prediction.smell = "Sweet smell";
+                            prediction.texture = "Getting softer";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Yellow; becoming mushy";
+                            prediction.smell = "Fermenting smell";
+                            prediction.texture = "Very mushy";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "No change from outside";
+                            prediction.smell = "Fermenting smell";
+                            prediction.texture = "Very mushy";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "No change from outside";
+                            prediction.smell = "Fermenting smell";
+                            prediction.texture = "Very mushy";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 1 (T1)") {
+                        // Green banana next to apple
+                        if (dayNumber === 1) {
+                            prediction.visual = "Very firm; unripe";
+                            prediction.smell = "No smell (unripe)";
+                            prediction.texture = "Very firm";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Firm; unripe";
+                            prediction.smell = "No smell";
+                            prediction.texture = "Firm";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Yellow-brown; softer";
+                            prediction.smell = "Sweet smell";
+                            prediction.texture = "Softer";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Browning from the top";
+                            prediction.smell = "Sweet smell";
+                            prediction.texture = "Soft";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "Signs of white webs";
+                            prediction.smell = "Signs of fermentation";
+                            prediction.texture = "Very soft";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 9) {
+                            prediction.visual = "Mold visible";
+                            prediction.smell = "Fermenting smell";
+                            prediction.texture = "Very soft";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Black; mold visible";
+                            prediction.smell = "Mold smell";
+                            prediction.texture = "Very soft";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 2 (Refrigerated)") {
+                        // Based on Table 5. Biological changes (T2 - Refrigerated)
+                        if (dayNumber === 1) {
+                            prediction.visual = "Yellow";
+                            prediction.smell = "No smell";
+                            prediction.texture = "Firm";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Darkening";
+                            prediction.smell = "No smell";
+                            prediction.texture = "Firm";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 3) {
+                            prediction.visual = "Brown spots appearing";
+                            prediction.smell = "No smell";
+                            prediction.texture = "Firm";
+                            prediction.safe_to_eat = false; // More conservative about bananas with brown spots in refrigeration
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Fully brown";
+                            prediction.smell = "No smell";
+                            prediction.texture = "Firm";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Dark brown";
+                            prediction.smell = "No smell";
+                            prediction.texture = "Softer";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Very dark; leathery appearance";
+                            prediction.smell = "Slight fermentation";
+                            prediction.texture = "Leathery";
+                            prediction.safe_to_eat = false;
+                        }
+                    }
+                }
+                
+                // APPLE RULES
+                else if (foodType === "Apple") {
+                    if (storageCondition === "Control (Room Temp, Humid)") {
+                        if (dayNumber === 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Beginning to soften";
+                            prediction.smell = "Sweet apple smell";
+                            prediction.texture = "Slightly soft";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Brown spots visible";
+                            prediction.smell = "Sweet apple smell";
+                            prediction.texture = "Softer";
+                            prediction.safe_to_eat = false; // More conservative approach for apples with visible brown spots
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "More brown spots";
+                            prediction.smell = "Stronger sweet smell";
+                            prediction.texture = "Soft texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Very soft; brown spots";
+                            prediction.smell = "Fermented smell";
+                            prediction.texture = "Very soft";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 1 (T1)") {
+                        // Apple next to green banana
+                        if (dayNumber === 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Brown patches appearing";
+                            prediction.smell = "Sweet apple smell";
+                            prediction.texture = "Slightly soft";
+                            prediction.safe_to_eat = false; // Conservative approach for apples with brown patches
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "More brown patches";
+                            prediction.smell = "Sweet smell";
+                            prediction.texture = "Soft texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "Very brown";
+                            prediction.smell = "Fermented smell";
+                            prediction.texture = "Very soft";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Decomposing; mold possible";
+                            prediction.smell = "Strong fermented smell";
+                            prediction.texture = "Mushy";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 2 (Refrigerated)") {
+                        // Refrigerated apple
+                        if (dayNumber === 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Still crisp";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "Very slight softening";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Slight softening";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Still looks fresh";
+                            prediction.smell = "Fresh apple smell";
+                            prediction.texture = "Slightly softer";
+                            prediction.safe_to_eat = true;
+                        }
+                    }
+                }
+                
+                // STRAWBERRY RULES
+                else if (foodType === "Strawberry") {
+                    if (storageCondition === "Control (Room Temp, Humid)") {
+                        if (dayNumber === 1) {
+                            prediction.visual = "Vibrant red color";
+                            prediction.smell = "Sweet, fresh strawberry smell";
+                            prediction.texture = "Firm, juicy";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Darker red color";
+                            prediction.smell = "Strong strawberry smell";
+                            prediction.texture = "Softer texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Drying; uneven color";
+                            prediction.smell = "Very strong sweet smell";
+                            prediction.texture = "Soft and mushy";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Mold appearing";
+                            prediction.smell = "Fermenting smell";
+                            prediction.texture = "Very soft, juice leaking";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "White mold visible";
+                            prediction.smell = "Stronger fermenting smell";
+                            prediction.texture = "Very soft, mushy";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Extensive mold; shriveled";
+                            prediction.smell = "Rotten smell";
+                            prediction.texture = "Decomposing";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 1 (T1)") {
+                        // Salted strawberry
+                        if (dayNumber === 1) {
+                            prediction.visual = "Darker red; wet appearance";
+                            prediction.smell = "Sweet strawberry smell";
+                            prediction.texture = "Softer, wet texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Darker, releasing juice";
+                            prediction.smell = "Sweet strawberry smell";
+                            prediction.texture = "Soft texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Very dark red; wet";
+                            prediction.smell = "Sweet but salty smell";
+                            prediction.texture = "Very soft, juicy";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Shriveled appearance";
+                            prediction.smell = "Sweet, fermented smell";
+                            prediction.texture = "Very soft texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 9) {
+                            prediction.visual = "Signs of mold";
+                            prediction.smell = "Fermentation smell";
+                            prediction.texture = "Very soft texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Mold visible";
+                            prediction.smell = "Fermentation, rotten smell";
+                            prediction.texture = "Decomposing";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 2 (Refrigerated)") {
+                        // Refrigerated strawberry
+                        if (dayNumber === 1) {
+                            prediction.visual = "Bright red color";
+                            prediction.smell = "Fresh strawberry smell";
+                            prediction.texture = "Firm texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Bright red color";
+                            prediction.smell = "Fresh strawberry smell";
+                            prediction.texture = "Firm texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Slightly darker red";
+                            prediction.smell = "Fresh strawberry smell";
+                            prediction.texture = "Slightly softer";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Darker red color";
+                            prediction.smell = "Slight sweet smell";
+                            prediction.texture = "Softer texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 8) {
+                            prediction.visual = "Darker red; slight drying";
+                            prediction.smell = "Sweet strawberry smell";
+                            prediction.texture = "Softer texture";
+                            prediction.safe_to_eat = false; // Using a more conservative approach
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Darker, slight shriveling";
+                            prediction.smell = "Faint sweet smell";
+                            prediction.texture = "Soft texture";
+                            prediction.safe_to_eat = false;
+                        }
+                    }
+                }
+                
+                // KHUBS (FLATBREAD) RULES
+                else if (foodType === "Khubs (Flatbread)") {
+                    if (storageCondition === "Control (Room Temp, Humid)") {
+                        if (dayNumber === 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh bread smell";
+                            prediction.texture = "Soft and pliable";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Slightly drier appearance";
+                            prediction.smell = "Faint bread smell";
+                            prediction.texture = "Slightly firmer";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "White spots appearing";
+                            prediction.smell = "Slight sour smell";
+                            prediction.texture = "Firmer texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Mold visible";
+                            prediction.smell = "Moldy smell";
+                            prediction.texture = "Dry, hard texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Extensive mold";
+                            prediction.smell = "Strong moldy smell";
+                            prediction.texture = "Very hard texture";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 1 (T1)") {
+                        // Salted flatbread
+                        if (dayNumber === 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh bread, salty smell";
+                            prediction.texture = "Soft and pliable";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Bread smell";
+                            prediction.texture = "Soft texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Slightly drier appearance";
+                            prediction.smell = "Faint bread smell";
+                            prediction.texture = "Slightly harder";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Dry appearance";
+                            prediction.smell = "Faint bread smell";
+                            prediction.texture = "Hard texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 9) {
+                            prediction.visual = "Very dry; white spots";
+                            prediction.smell = "Stale smell";
+                            prediction.texture = "Very hard texture";
+                            prediction.safe_to_eat = false;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "White spots visible";
+                            prediction.smell = "Stale, moldy smell";
+                            prediction.texture = "Very hard texture";
+                            prediction.safe_to_eat = false;
+                        }
+                    } else if (storageCondition === "Test 2 (Refrigerated)") {
+                        // Refrigerated flatbread
+                        if (dayNumber === 1) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh bread smell";
+                            prediction.texture = "Firm, cold texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 2) {
+                            prediction.visual = "Fresh appearance";
+                            prediction.smell = "Fresh bread smell";
+                            prediction.texture = "Firm texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 4) {
+                            prediction.visual = "Slight drying";
+                            prediction.smell = "Faint bread smell";
+                            prediction.texture = "Firmer texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 7) {
+                            prediction.visual = "Drier appearance";
+                            prediction.smell = "Faint bread smell";
+                            prediction.texture = "Hard texture";
+                            prediction.safe_to_eat = true;
+                        }
+                        if (dayNumber >= 10) {
+                            prediction.visual = "Very dry appearance";
+                            prediction.smell = "Faint stale smell";
+                            prediction.texture = "Very hard texture";
+                            prediction.safe_to_eat = false;
+                        }
+                    }
+                }
+                
+                return prediction;
+            }
+        };
+
+        // Application Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get form elements
+            const spoilageForm = document.getElementById('spoilage-form');
+            const foodTypeSelect = document.getElementById('food-type');
+            const storageConditionSelect = document.getElementById('storage-condition');
+            const storageDescriptionDiv = document.getElementById('storage-description');
+            const storageDescriptionContainer = document.getElementById('storage-description-container');
+            const dayNumberInput = document.getElementById('day-number');
+            
+            // Get result elements
+            const resultsDiv = document.getElementById('results');
+            const noResultsDiv = document.getElementById('no-results');
+            const errorMessageDiv = document.getElementById('error-message');
+            const safetyBadge = document.getElementById('safety-badge');
+            const safetyIndicator = document.querySelector('.safety-indicator');
+            const visualResult = document.getElementById('visual-result');
+            const smellResult = document.getElementById('smell-result');
+            const textureResult = document.getElementById('texture-result');
+            const phResult = document.getElementById('ph-result');
+            const phResultContainer = document.querySelector('.ph-result-container');
+            
+            // Handle form submission
+            spoilageForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                // Clear previous error message
+                errorMessageDiv.textContent = '';
+                errorMessageDiv.classList.add('d-none');
+                
+                // Get form values
+                const foodType = foodTypeSelect.value;
+                const storageCondition = storageConditionSelect.value;
+                const dayNumber = parseInt(dayNumberInput.value);
+                
+                // Validate form inputs
+                if (!foodType || !storageCondition || isNaN(dayNumber)) {
+                    showError('Please fill out all fields');
+                    return;
+                }
+
+                if (dayNumber < 0 || dayNumber > 10) {
+                    showError('Day number must be between 0 and 10');
+                    return;
+                }
+                
+                // Get prediction
+                const prediction = FoodData.predictSpoilage(foodType, storageCondition, dayNumber);
+                
+                // Display results
+                displayResults(prediction);
+            });
+            
+            // Update storage description when food type and storage condition change
+            function updateStorageDescription() {
+                const foodType = foodTypeSelect.value;
+                const storageCondition = storageConditionSelect.value;
+                
+                // Check if container and description elements exist
+                if (!storageDescriptionContainer || !storageDescriptionDiv) {
+                    console.error('Storage description elements not found in the DOM');
+                    return;
+                }
+                
+                if (foodType && storageCondition) {
+                    // Show the storage description container
+                    storageDescriptionContainer.style.display = 'block';
+                    
+                    // Get storage description
+                    const description = FoodData.getStorageDescription(foodType, storageCondition);
+                    
+                    // Remove animation classes first
+                    storageDescriptionDiv.classList.remove('fade-in', 'pop-in');
+                    
+                    // Force a reflow so the animation plays again
+                    void storageDescriptionDiv.offsetWidth;
+                    
+                    // Update content
+                    storageDescriptionDiv.textContent = description;
+                    
+                    // Add pop-in animation
+                    storageDescriptionDiv.classList.add('pop-in');
+                } else {
+                    // Hide the storage description container if either food type or storage condition is missing
+                    storageDescriptionContainer.style.display = 'none';
+                }
+            }
+            
+            // Add event listeners for food type and storage condition changes
+            foodTypeSelect.addEventListener('change', updateStorageDescription);
+            storageConditionSelect.addEventListener('change', updateStorageDescription);
+            
+            // Display prediction results
+            function displayResults(data) {
+                // Hide error message and no results message
+                errorMessageDiv.classList.add('d-none');
+                noResultsDiv.classList.add('d-none');
+                
+                // Display results
+                resultsDiv.classList.remove('d-none');
+                
+                // Update safety status
+                if (data.safe_to_eat) {
+                    safetyBadge.textContent = 'Safe to Eat';
+                    safetyBadge.className = 'badge rounded-pill bg-success';
+                    safetyIndicator.textContent = 'This food appears to be safe for consumption';
+                    safetyIndicator.className = 'safety-indicator mb-3 p-2 rounded safe';
+                } else {
+                    safetyBadge.textContent = 'NOT Safe to Eat';
+                    safetyBadge.className = 'badge rounded-pill bg-danger';
+                    safetyIndicator.textContent = 'This food shows signs of spoilage and should NOT be consumed';
+                    safetyIndicator.className = 'safety-indicator mb-3 p-2 rounded unsafe';
+                }
+                
+                // Update prediction details
+                visualResult.textContent = data.visual;
+                smellResult.textContent = data.smell;
+                textureResult.textContent = data.texture;
+                
+                // Update pH result if available
+                if (data.ph !== null) {
+                    phResult.textContent = data.ph;
+                    phResultContainer.classList.remove('ph-result-hidden');
+                } else {
+                    phResult.textContent = 'N/A';
+                    phResultContainer.classList.add('ph-result-hidden');
+                }
+                
+                // Apply animation
+                resultsDiv.classList.add('fade-in');
+            }
+            
+            // Display error message
+            function showError(message) {
+                // Hide results and display error message
+                resultsDiv.classList.add('d-none');
+                noResultsDiv.classList.add('d-none');
+                errorMessageDiv.textContent = message;
+                errorMessageDiv.classList.remove('d-none');
+            }
+        });
+    </script>
+</body>
+</html>
